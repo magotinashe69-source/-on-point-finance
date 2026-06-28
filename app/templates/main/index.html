@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Skeleton running &middot; On Point Finance{% endblock %}
+{% block content %}
+<div class="card">
+  <h1 style="margin-top:0; color:#16264d;">Phase 1 complete &mdash; the skeleton runs</h1>
+  <p>This is the secure shell of the app. There is no login screen or data yet;
+     those arrive in the next phases. What is already wired and working:</p>
+  <ul style="line-height:1.9;">
+    <li><strong>Application factory</strong> &mdash; the app is built inside <code>create_app()</code>.</li>
+    <li><strong>Config from environment</strong> &mdash; the secret key is read from <code>.env</code>, never hard-coded.</li>
+    <li><strong>Database layer</strong> (SQLAlchemy) ready for the models in Phase 2.</li>
+    <li><strong>Login manager</strong> ready for the auth system in Phase 3.</li>
+    <li><strong>CSRF protection</strong> active for every future form.</li>
+    <li><strong>Rate limiter</strong> ready to defend the login route.</li>
+    <li><strong>Hardened cookies</strong> &mdash; HttpOnly, SameSite=Lax, 30-minute auto-logout.</li>
+  </ul>
+  <p style="color:#5f6b82;">Next: Phase 2 &mdash; database models, migrations, and your first admin user.</p>
+</div>
+{% endblock %}

@@ -1,0 +1,27 @@
+# Secrets and environment
+.env
+
+# Database and instance data (the real money data never goes into git)
+instance/
+*.db
+*.sqlite
+*.sqlite3
+
+# Backups
+backups/
+
+# Virtual environment
+.venv/
+venv/
+
+# Python cache / build
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Editor
+.idea/
+.vscode/
+*.swp
+.DS_Store
