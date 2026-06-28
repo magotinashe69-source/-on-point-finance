@@ -10,26 +10,67 @@
     body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
            color: #1d2433; background: #f4f6fa; }
     header { background: var(--navy); color: #fff; padding: 16px 24px;
-             display: flex; align-items: center; gap: 14px; }
+             display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+    .brand-left { display: flex; align-items: center; gap: 14px; }
     .badge { width: 44px; height: 44px; border-radius: 10px; background: var(--gold);
              color: var(--navy); display: flex; align-items: center; justify-content: center;
              font-weight: 700; font-size: 18px; }
+    .brand-name { font-size: 18px; font-weight: 600; }
     header .sub { color: var(--gold); font-size: 13px; }
+    nav.nav { display: flex; align-items: center; gap: 18px; font-size: 14px; }
+    nav.nav a { color: #fff; text-decoration: none; }
+    nav.nav a:hover { color: var(--gold); }
+    nav.nav .who { color: var(--gold); font-weight: 600; }
+    nav.nav a.logout { background: var(--gold); color: var(--navy); padding: 7px 14px;
+                       border-radius: 8px; font-weight: 600; }
     main { max-width: 760px; margin: 28px auto; padding: 0 20px; }
-    .card { background: #fff; border: 1px solid #e3e7ef; border-radius: 12px;
-            padding: 24px 26px; }
+    .card { background: #fff; border: 1px solid #e3e7ef; border-radius: 12px; padding: 24px 26px; }
     footer { text-align: center; color: #8a93a6; font-size: 12px; margin: 30px 0; }
+
+    /* Flashed messages */
+    .flash { padding: 12px 16px; border-radius: 8px; margin-bottom: 14px; font-size: 14px; }
+    .flash.success { background: #e7f6ec; color: #1b6e3c; border: 1px solid #bfe3cc; }
+    .flash.error   { background: #fdeaea; color: #a12626; border: 1px solid #f3c6c6; }
+    .flash.warning { background: #fbf3da; color: #7a5c00; border: 1px solid #ecd9a0; }
+    .flash.message { background: #eef1f7; color: #34405a; border: 1px solid #d6deec; }
+
+    /* Forms */
+    label { font-weight: 600; font-size: 14px; color: #34405a; display: block; margin-top: 12px; }
+    .input { width: 100%; padding: 10px 12px; border: 1px solid #c9d2e3; border-radius: 8px;
+             font-size: 15px; margin: 6px 0 2px; }
+    .input:focus { outline: none; border-color: var(--navy); }
+    .btn-primary { margin-top: 18px; width: 100%; background: var(--navy); color: #fff; border: 0;
+                   padding: 12px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
+    .btn-primary:hover { background: #1f3568; }
+    .field-error { color: #a12626; font-size: 13px; margin-bottom: 4px; }
   </style>
 </head>
 <body>
   <header>
-    <div class="badge">OP</div>
-    <div>
-      <div style="font-size:18px; font-weight:600;">On Point Finance</div>
-      <div class="sub">On Point Educational Centre &middot; Quality Beyond Measure</div>
+    <div class="brand-left">
+      <div class="badge">OP</div>
+      <div>
+        <div class="brand-name">On Point Finance</div>
+        <div class="sub">On Point Educational Centre &middot; Quality Beyond Measure</div>
+      </div>
     </div>
+    {% if current_user.is_authenticated %}
+    <nav class="nav">
+      <a href="{{ url_for('main.index') }}">Home</a>
+      <a href="{{ url_for('auth.change_password') }}">Change password</a>
+      <span class="who">Hi, {{ current_user.name }}</span>
+      <a class="logout" href="{{ url_for('auth.logout') }}">Log out</a>
+    </nav>
+    {% endif %}
   </header>
   <main>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
     {% block content %}{% endblock %}
   </main>
   <footer>On Point Educational Centre &middot; Quality Beyond Measure</footer>

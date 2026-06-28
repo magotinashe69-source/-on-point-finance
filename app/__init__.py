@@ -44,9 +44,12 @@ def create_app(config_name=None):
     from app import models  # noqa: F401
 
     # Register blueprints (feature areas). More are added in later phases:
-    #   auth (Phase 3), reports (Phase 6), admin (Phase 7).
+    #   reports (Phase 6), admin (Phase 7).
     from app.main import bp as main_bp
     app.register_blueprint(main_bp)
+
+    from app.auth import bp as auth_bp
+    app.register_blueprint(auth_bp)
 
     # Register CLI commands: flask seed-categories / flask create-admin.
     from app.cli import register_cli

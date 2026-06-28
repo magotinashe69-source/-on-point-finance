@@ -7,6 +7,8 @@ environment, never written into code. Copy .env.example to .env and fill it in.
 import os
 from datetime import timedelta
 
+from sqlalchemy.pool import StaticPool
+
 # Absolute path to the project root (the folder this file lives in).
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -52,9 +54,25 @@ class ProdConfig(Config):
     DEBUG = False
 
 
+class TestConfig(Config):
+    """Used by pytest. Hermetic: in-memory DB, no CSRF tokens, no rate limiting."""
+    TESTING = True
+    DEBUG = False
+    SECRET_KEY = "test-secret-key-not-for-production"
+    # In-memory SQLite shared across connections via a single static connection.
+    SQLALCHEMY_DATABASE_URI = "sqlite://"
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "connect_args": {"check_same_thread": False},
+        "poolclass": StaticPool,
+    }
+    WTF_CSRF_ENABLED = False   # tests post forms without a CSRF token
+    RATELIMIT_ENABLED = False  # don't 429 the rapid login attempts in tests
+
+
 # Look up a config class by name (set FLASK_CONFIG in .env).
 config = {
     "dev": DevConfig,
     "prod": ProdConfig,
+    "test": TestConfig,
     "default": DevConfig,
 }

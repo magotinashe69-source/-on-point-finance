@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Log in &middot; On Point Finance{% endblock %}
+{% block content %}
+<div class="card" style="max-width: 420px; margin: 0 auto;">
+  <h1 style="margin-top: 0; color: var(--navy);">Log in</h1>
+  <p style="color: #5f6b82; margin-top: 0;">Please sign in to use On Point Finance.</p>
+
+  <form method="post" action="{{ url_for('auth.login') }}" novalidate>
+    {{ form.hidden_tag() }}
+
+    {{ form.username.label }}
+    {{ form.username(class_="input", autofocus=true, autocomplete="username") }}
+    {% for error in form.username.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+
+    {{ form.password.label }}
+    {{ form.password(class_="input", autocomplete="current-password") }}
+    {% for error in form.password.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+
+    <button type="submit" class="btn-primary">Log in</button>
+  </form>
+</div>
+{% endblock %}
