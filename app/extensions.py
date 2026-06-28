@@ -32,12 +32,4 @@ login_manager.login_view = "auth.login"
 login_manager.login_message = "Please log in to continue."
 login_manager.login_message_category = "warning"
 
-
-@login_manager.user_loader
-def load_user(user_id):
-    """Tell Flask-Login how to fetch a user by id.
-
-    Returns None for now because the User model arrives in Phase 2. Once it
-    exists, this becomes:  return User.query.get(int(user_id))
-    """
-    return None
+# The user_loader is registered in app/models.py, alongside the User model.

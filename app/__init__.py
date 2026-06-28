@@ -39,9 +39,17 @@ def create_app(config_name=None):
     csrf.init_app(app)
     limiter.init_app(app)
 
+    # Import models so they register with SQLAlchemy's metadata. Flask-Migrate
+    # needs this to detect the tables; it also wires the Flask-Login user_loader.
+    from app import models  # noqa: F401
+
     # Register blueprints (feature areas). More are added in later phases:
     #   auth (Phase 3), reports (Phase 6), admin (Phase 7).
     from app.main import bp as main_bp
     app.register_blueprint(main_bp)
+
+    # Register CLI commands: flask seed-categories / flask create-admin.
+    from app.cli import register_cli
+    register_cli(app)
 
     return app
