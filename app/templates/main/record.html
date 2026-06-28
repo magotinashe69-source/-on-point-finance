@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Record {{ txn_type }} &middot; On Point Finance{% endblock %}
+{% block content %}
+<div class="card" style="max-width: 520px; margin: 0 auto;">
+  <h1 style="margin-top: 0; color: {{ '#1b7e3c' if txn_type == 'income' else '#b3261e' }};">
+    Record {{ txn_type|capitalize }}
+  </h1>
+
+  <form method="post" action="{{ url_for('main.record', txn_type=txn_type) }}" novalidate>
+    {{ form.hidden_tag() }}
+
+    {{ form.amount.label }}
+    {{ form.amount(class_="input", placeholder="0.00", inputmode="decimal", autofocus=true) }}
+    {% for error in form.amount.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+
+    {{ form.category.label }}
+    {{ form.category(class_="input") }}
+    {% for error in form.category.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+
+    {{ form.payment_method.label }}
+    {{ form.payment_method(class_="input") }}
+    {% for error in form.payment_method.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+
+    {{ form.date.label }}
+    {{ form.date(class_="input", type="date") }}
+    {% for error in form.date.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+
+    {{ form.description.label }}
+    {{ form.description(class_="input", rows="2") }}
+    {% for error in form.description.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+
+    <button type="submit" class="btn-primary"
+            style="background: {{ '#1b7e3c' if txn_type == 'income' else '#b3261e' }};">
+      Save {{ txn_type }}
+    </button>
+  </form>
+
+  <p style="margin-top: 16px;">
+    <a href="{{ url_for('main.index', date=selected_day.isoformat()) }}">&larr; Back to the day</a>
+  </p>
+</div>
+{% endblock %}

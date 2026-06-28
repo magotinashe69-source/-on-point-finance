@@ -55,4 +55,8 @@ def create_app(config_name=None):
     from app.cli import register_cli
     register_cli(app)
 
+    # Make the money formatter available in every template.
+    from app.money import cents_to_str
+    app.jinja_env.globals["cents_to_str"] = cents_to_str
+
     return app

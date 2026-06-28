@@ -43,6 +43,45 @@
                    padding: 12px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
     .btn-primary:hover { background: #1f3568; }
     .field-error { color: #a12626; font-size: 13px; margin-bottom: 4px; }
+
+    /* Dashboard: stat cards */
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+    .stat { border-radius: 12px; padding: 18px 20px; color: #fff; }
+    .stat .label { font-size: 13px; opacity: 0.92; }
+    .stat .value { font-size: 26px; font-weight: 700; margin-top: 6px; }
+    .stat.income  { background: #1b7e3c; }
+    .stat.expense { background: #b3261e; }
+    .stat.balance { background: var(--navy); }
+
+    /* Big record buttons */
+    .actions { display: flex; gap: 14px; margin-bottom: 22px; }
+    .btn-big { flex: 1; text-align: center; padding: 18px; border-radius: 12px; color: #fff;
+               font-size: 18px; font-weight: 700; text-decoration: none; }
+    .btn-income  { background: #1b7e3c; }
+    .btn-income:hover  { background: #166a32; }
+    .btn-expense { background: #b3261e; }
+    .btn-expense:hover { background: #971f19; }
+
+    /* Date picker */
+    .dateform { display: flex; align-items: flex-end; gap: 10px; margin-bottom: 18px; }
+    .dateform input[type=date] { padding: 9px 12px; border: 1px solid #c9d2e3; border-radius: 8px; font-size: 15px; }
+    .dateform button { padding: 9px 16px; border: 0; background: var(--navy); color: #fff;
+                       border-radius: 8px; cursor: pointer; }
+
+    /* Entries table */
+    table.entries { width: 100%; border-collapse: collapse; background: #fff;
+                    border: 1px solid #e3e7ef; border-radius: 12px; overflow: hidden; }
+    table.entries th, table.entries td { text-align: left; padding: 10px 12px;
+                    border-bottom: 1px solid #eef1f7; font-size: 14px; }
+    table.entries th { background: #f0f3f9; color: #34405a; }
+    table.entries tr:last-child td { border-bottom: 0; }
+    .tag { padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+    .tag.income  { background: #e7f6ec; color: #1b6e3c; }
+    .tag.expense { background: #fdeaea; color: #a12626; }
+    td.amount { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .btn-danger { background: #b3261e; color: #fff; border: 0; padding: 7px 12px;
+                  border-radius: 8px; cursor: pointer; font-size: 13px; }
+    .muted { color: #8a93a6; }
   </style>
 </head>
 <body>
