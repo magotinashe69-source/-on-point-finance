@@ -4,9 +4,12 @@
   flask create-admin      -> interactively create the first admin user
   flask reset-password    -> set a new password for a user (and unlock them)
   flask change-login      -> rename a user, set a new password, and unlock them
+  flask force-reset-admin -> non-interactive reset via env vars (for deploy hooks)
 
 All are registered on the app in the application factory.
 """
+
+import os
 
 import click
 from flask.cli import with_appcontext
@@ -123,9 +126,44 @@ def change_login(old_username, new_username):
     click.echo(f"Login updated: '{old_username}' is now '{new_username}' (password reset, account unlocked).")
 
 
+@click.command("force-reset-admin")
+@with_appcontext
+def force_reset_admin():
+    """One-time, non-interactive password reset driven by environment variables.
+
+    Reads RESET_USERNAME and RESET_PASSWORD. Intended for hosts with no shell
+    access: set both env vars for a single deploy, then remove them. Safe to
+    leave wired into build.sh — it does nothing unless both vars are set, and it
+    exits successfully on every path so it never breaks a deploy. Never prints
+    the password.
+    """
+    username = (os.environ.get("RESET_USERNAME") or "").strip()
+    password = os.environ.get("RESET_PASSWORD") or ""
+
+    if not username or not password:
+        click.echo("force-reset-admin: no reset requested, skipping.")
+        return
+
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        click.echo(f"force-reset-admin: no user named '{username}', skipping.")
+        return
+
+    user.set_password(password)
+    # Unlock the account at the same time.
+    user.locked_until = None
+    user.failed_login_attempts = 0
+
+    record_audit("force_reset_admin", user_id=user.id, entity="user", entity_id=user.id,
+                 details={"username": user.username, "via": "deploy-env"})
+    db.session.commit()
+    click.echo(f"force-reset-admin: password updated for {username}")
+
+
 def register_cli(app) -> None:
     """Attach the CLI commands to the Flask app (called from the factory)."""
     app.cli.add_command(seed_categories)
     app.cli.add_command(create_admin)
     app.cli.add_command(reset_password)
     app.cli.add_command(change_login)
+    app.cli.add_command(force_reset_admin)
