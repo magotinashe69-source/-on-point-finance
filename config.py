@@ -70,8 +70,10 @@ class DevConfig(Config):
 
 
 class ProdConfig(Config):
-    """Used for the real desktop app (served by waitress in Phase 9)."""
+    """Used for the real desktop app (waitress) and the Render deployment."""
     DEBUG = False
+    # Deployed app runs over HTTPS, so only send the session cookie over HTTPS.
+    SESSION_COOKIE_SECURE = True
 
 
 class TestConfig(Config):

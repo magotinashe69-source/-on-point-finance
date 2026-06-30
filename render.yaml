@@ -1,0 +1,24 @@
+# Render Blueprint for On Point Finance.
+# Deploy: connect this repo on render.com; Render reads this file.
+#
+# SECRETS ARE NOT IN THIS FILE. Set these in the Render dashboard
+# (Environment tab) for the service — they are marked sync:false below:
+#   - SECRET_KEY    a long random string (e.g. python -c "import secrets; print(secrets.token_hex(32))")
+#   - DATABASE_URL  the Neon PostgreSQL connection string
+services:
+  - type: web
+    name: on-point-finance
+    runtime: python                # Render's "python" environment
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn 'app:create_app()' --bind 0.0.0.0:$PORT"
+    envVars:
+      # Non-secret config (safe to commit):
+      - key: FLASK_CONFIG          # selects ProdConfig (HTTPS cookies, debug off)
+        value: prod
+      - key: FLASK_APP             # lets `flask db upgrade` in build.sh find the app
+        value: run.py
+      # Secrets — set their values in the Render dashboard, NOT here:
+      - key: SECRET_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
