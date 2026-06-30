@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Categories &middot; Settings{% endblock %}
+{% block content %}
+<h1 style="color: var(--navy); margin-top: 0;">Settings</h1>
+{% include "admin/_tabs.html" %}
+
+<h2 style="color: var(--navy); font-size: 18px;">Categories</h2>
+<table class="entries">
+  <thead>
+    <tr><th>Name</th><th>Type</th><th>Status</th><th style="text-align:right;">Actions</th></tr>
+  </thead>
+  <tbody>
+    {% for c in categories %}
+    <tr>
+      <td>{{ c.name }}</td>
+      <td><span class="tag {{ c.type }}">{{ c.type|capitalize }}</span></td>
+      <td>
+        {% if c.is_active %}<span class="tag income">Visible</span>
+        {% else %}<span class="tag" style="background:#eef1f7;color:#5f6b82;">Hidden</span>{% endif %}
+      </td>
+      <td style="text-align:right;">
+        <form method="post" action="{{ url_for('admin.toggle_category_active', category_id=c.id) }}" style="display:inline;">
+          {{ action.hidden_tag() }}
+          <button type="submit" class="btn-danger" style="{% if not c.is_active %}background:#1b7e3c;{% endif %}">
+            {{ 'Hide' if c.is_active else 'Show' }}
+          </button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div class="card" style="margin-top: 22px; max-width: 460px;">
+  <h3 style="margin-top: 0; color: var(--navy);">Add category</h3>
+  <form method="post" action="{{ url_for('admin.add_category') }}" novalidate>
+    {{ form.hidden_tag() }}
+    {{ form.name.label }} {{ form.name(class_="input") }}
+    {{ form.type.label }} {{ form.type(class_="input") }}
+    <button type="submit" class="btn-primary">Add category</button>
+  </form>
+</div>
+{% endblock %}

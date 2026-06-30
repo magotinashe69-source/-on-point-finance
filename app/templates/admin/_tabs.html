@@ -1,0 +1,8 @@
+<div style="display:flex; gap:16px; margin: 6px 0 20px; border-bottom:2px solid #e3e7ef; padding-bottom:8px;">
+  <a href="{{ url_for('admin.users') }}"
+     style="text-decoration:none; font-weight:600; color:{{ 'var(--navy)' if request.endpoint == 'admin.users' else '#8a93a6' }};">Users</a>
+  <a href="{{ url_for('admin.categories') }}"
+     style="text-decoration:none; font-weight:600; color:{{ 'var(--navy)' if request.endpoint == 'admin.categories' else '#8a93a6' }};">Categories</a>
+  <a href="{{ url_for('admin.audit') }}"
+     style="text-decoration:none; font-weight:600; color:{{ 'var(--navy)' if request.endpoint == 'admin.audit' else '#8a93a6' }};">Audit log</a>
+</div>

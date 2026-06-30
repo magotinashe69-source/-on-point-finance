@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Users &middot; Settings{% endblock %}
+{% block content %}
+<h1 style="color: var(--navy); margin-top: 0;">Settings</h1>
+{% include "admin/_tabs.html" %}
+
+<h2 style="color: var(--navy); font-size: 18px;">Users</h2>
+<table class="entries">
+  <thead>
+    <tr><th>Name</th><th>Username</th><th>Role</th><th>Status</th><th style="text-align:right;">Actions</th></tr>
+  </thead>
+  <tbody>
+    {% for u in users %}
+    <tr>
+      <td>{{ u.name }}{% if u.id == current_user.id %} <span class="muted">(you)</span>{% endif %}</td>
+      <td>{{ u.username }}</td>
+      <td>{{ u.role|capitalize }}</td>
+      <td>
+        {% if is_locked(u) %}<span class="tag expense">Locked</span>
+        {% elif u.is_active %}<span class="tag income">Active</span>
+        {% else %}<span class="tag" style="background:#eef1f7;color:#5f6b82;">Inactive</span>{% endif %}
+      </td>
+      <td style="text-align:right; white-space:nowrap;">
+        {% if u.id != current_user.id %}
+        <form method="post" action="{{ url_for('admin.toggle_user_active', user_id=u.id) }}" style="display:inline;">
+          {{ action.hidden_tag() }}
+          <button type="submit" class="btn-danger" style="{% if not u.is_active %}background:#1b7e3c;{% endif %}">
+            {{ 'Deactivate' if u.is_active else 'Reactivate' }}
+          </button>
+        </form>
+        {% endif %}
+        {% if is_locked(u) %}
+        <form method="post" action="{{ url_for('admin.unlock_user', user_id=u.id) }}" style="display:inline;">
+          {{ action.hidden_tag() }}
+          <button type="submit" class="btn-danger" style="background:var(--navy);">Unlock</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div class="card" style="margin-top: 22px; max-width: 460px;">
+  <h3 style="margin-top: 0; color: var(--navy);">Add user</h3>
+  <form method="post" action="{{ url_for('admin.add_user') }}" novalidate>
+    {{ form.hidden_tag() }}
+    {{ form.name.label }} {{ form.name(class_="input") }}
+    {{ form.username.label }} {{ form.username(class_="input", autocomplete="off") }}
+    {{ form.password.label }} {{ form.password(class_="input", autocomplete="new-password") }}
+    {{ form.role.label }} {{ form.role(class_="input") }}
+    <button type="submit" class="btn-primary">Add user</button>
+  </form>
+</div>
+{% endblock %}
