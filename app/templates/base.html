@@ -96,6 +96,7 @@
     {% if current_user.is_authenticated %}
     <nav class="nav">
       <a href="{{ url_for('main.index') }}">Home</a>
+      <a href="{{ url_for('reports.index') }}">Reports</a>
       <a href="{{ url_for('auth.change_password') }}">Change password</a>
       <span class="who">Hi, {{ current_user.name }}</span>
       <a class="logout" href="{{ url_for('auth.logout') }}">Log out</a>

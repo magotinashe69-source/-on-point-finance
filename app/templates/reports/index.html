@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Reports &middot; On Point Finance{% endblock %}
+{% block content %}
+
+<h1 style="color: var(--navy); margin-top: 0;">Reports</h1>
+
+<form method="get" action="{{ url_for('reports.index') }}" class="dateform">
+  <div>
+    <label for="start">From</label>
+    <input type="date" id="start" name="start" value="{{ start.isoformat() }}">
+  </div>
+  <div>
+    <label for="end">To</label>
+    <input type="date" id="end" name="end" value="{{ end.isoformat() }}">
+  </div>
+  <button type="submit">Show</button>
+</form>
+
+<div class="cards">
+  <div class="stat income">
+    <div class="label">Income</div>
+    <div class="value">{{ cents_to_str(totals.income_cents) }}</div>
+  </div>
+  <div class="stat expense">
+    <div class="label">Expenses</div>
+    <div class="value">{{ cents_to_str(totals.expense_cents) }}</div>
+  </div>
+  <div class="stat balance">
+    <div class="label">Balance</div>
+    <div class="value">{{ cents_to_str(totals.balance_cents) }}</div>
+  </div>
+</div>
+
+<div class="actions">
+  <a class="btn-big" style="background: var(--navy);"
+     href="{{ url_for('reports.pdf', start=start.isoformat(), end=end.isoformat()) }}">
+    Download PDF
+  </a>
+  <a class="btn-big" style="background: #1f7a4d;"
+     href="{{ url_for('reports.excel', start=start.isoformat(), end=end.isoformat()) }}">
+    Download Excel
+  </a>
+</div>
+
+<h2 style="color: var(--navy); font-size: 18px;">
+  Entries: {{ start.strftime('%d %b %Y') }} &ndash; {{ end.strftime('%d %b %Y') }}
+</h2>
+
+{% if entries %}
+<table class="entries">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Category</th>
+      <th>Method</th>
+      <th style="text-align:right;">Amount</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for e in entries %}
+    <tr>
+      <td>{{ e.date.strftime('%d %b') }}</td>
+      <td><span class="tag {{ e.type }}">{{ e.type|capitalize }}</span></td>
+      <td>{{ e.description or '—' }}</td>
+      <td>{{ e.category.name }}</td>
+      <td>{{ e.payment_method }}</td>
+      <td class="amount">{{ cents_to_str(e.amount_cents) }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">No entries in this range.</p>
+{% endif %}
+
+<h2 style="color: var(--navy); font-size: 18px; margin-top: 24px;">Summary by category</h2>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+  <div>
+    <h3 style="color: #1b7e3c; font-size: 15px; margin-bottom: 6px;">Income</h3>
+    <table class="entries">
+      <tbody>
+        {% for name, cents in breakdown.income %}
+        <tr><td>{{ name }}</td><td class="amount">{{ cents_to_str(cents) }}</td></tr>
+        {% else %}
+        <tr><td class="muted">(none)</td><td class="amount">{{ cents_to_str(0) }}</td></tr>
+        {% endfor %}
+        <tr><td><strong>Subtotal</strong></td>
+            <td class="amount"><strong>{{ cents_to_str(breakdown.income_subtotal_cents) }}</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div>
+    <h3 style="color: #b3261e; font-size: 15px; margin-bottom: 6px;">Expenses</h3>
+    <table class="entries">
+      <tbody>
+        {% for name, cents in breakdown.expense %}
+        <tr><td>{{ name }}</td><td class="amount">{{ cents_to_str(cents) }}</td></tr>
+        {% else %}
+        <tr><td class="muted">(none)</td><td class="amount">{{ cents_to_str(0) }}</td></tr>
+        {% endfor %}
+        <tr><td><strong>Subtotal</strong></td>
+            <td class="amount"><strong>{{ cents_to_str(breakdown.expense_subtotal_cents) }}</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
