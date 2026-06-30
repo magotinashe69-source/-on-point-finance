@@ -2,8 +2,9 @@
 
   flask seed-categories   -> insert the starting income/expense categories
   flask create-admin      -> interactively create the first admin user
+  flask reset-password    -> set a new password for a user (and unlock them)
 
-Both are registered on the app in the application factory.
+All are registered on the app in the application factory.
 """
 
 import click
@@ -11,6 +12,7 @@ from flask.cli import with_appcontext
 
 from app.extensions import db
 from app.models import User, Category
+from app.audit import record_audit
 
 # Starting categories from SPEC.md section 4.
 INCOME_CATEGORIES = [
@@ -60,7 +62,32 @@ def create_admin():
     click.echo(f"Admin user '{username}' created.")
 
 
+@click.command("reset-password")
+@click.argument("username")
+@with_appcontext
+def reset_password(username):
+    """Set a new password for USERNAME and unlock the account."""
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        raise click.ClickException(f"No user named '{username}' was found.")
+
+    password = click.prompt("New password", hide_input=True, confirmation_prompt=True)
+    if len(password) < 8:
+        raise click.ClickException("Password must be at least 8 characters.")
+
+    user.set_password(password)
+    # Unlock the account at the same time.
+    user.locked_until = None
+    user.failed_login_attempts = 0
+
+    record_audit("reset_password", user_id=user.id, entity="user", entity_id=user.id,
+                 details={"username": user.username, "via": "cli"})
+    db.session.commit()
+    click.echo(f"Password updated for {username}")
+
+
 def register_cli(app) -> None:
     """Attach the CLI commands to the Flask app (called from the factory)."""
     app.cli.add_command(seed_categories)
     app.cli.add_command(create_admin)
+    app.cli.add_command(reset_password)
