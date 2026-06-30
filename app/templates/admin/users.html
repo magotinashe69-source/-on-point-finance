@@ -52,4 +52,23 @@
     <button type="submit" class="btn-primary">Add user</button>
   </form>
 </div>
+
+<div class="card" style="margin-top: 22px; max-width: 560px;">
+  <h3 style="margin-top: 0; color: var(--navy);">Backup &amp; safety</h3>
+  <p class="muted" style="margin-top: 0;">
+    Make a clean copy of all the financial data. The copy is saved in the
+    <code>backups</code> folder with the date and time in its name.
+  </p>
+  <form method="post" action="{{ url_for('admin.backup') }}">
+    {{ action.hidden_tag() }}
+    <button type="submit" class="btn-primary" style="width: auto; padding: 12px 22px;">Back up now</button>
+  </form>
+  <div class="flash warning" style="margin-top: 16px;">
+    <strong>Keep the data safe:</strong>
+    <ul style="margin: 8px 0 0; padding-left: 20px; line-height: 1.6;">
+      <li>Turn on <strong>Windows BitLocker</strong> (disk encryption) on this PC — the best protection if the laptop is lost or stolen.</li>
+      <li>Once a week, copy the <code>backups</code> folder to <strong>Google Drive</strong> (or a USB stick kept elsewhere).</li>
+    </ul>
+  </div>
+</div>
 {% endblock %}

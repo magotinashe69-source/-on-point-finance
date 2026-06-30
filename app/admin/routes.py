@@ -1,8 +1,12 @@
 """Admin routes. Every route requires login AND the admin role (server-enforced)."""
 
-from flask import render_template, request, redirect, url_for, flash, abort
+import os
+from datetime import datetime
+
+from flask import render_template, request, redirect, url_for, flash, abort, current_app
 from flask_login import login_required, current_user
 
+from config import basedir
 from app.extensions import db
 from app.models import User, Category, AuditLog
 from app.audit import record_audit
@@ -10,8 +14,10 @@ from app.auth.decorators import admin_required
 from app.auth.service import is_locked
 from app.admin import bp
 from app.admin.forms import AddUserForm, AddCategoryForm, ActionForm
+from app.admin.backup import create_backup
 
 AUDIT_PER_PAGE = 20
+BACKUPS_DIR = os.path.join(basedir, "backups")
 
 
 def _flash_form_errors(form) -> None:
@@ -19,6 +25,11 @@ def _flash_form_errors(form) -> None:
     for errors in form.errors.values():
         for error in errors:
             flash(error, "error")
+
+
+def _source_db_path() -> str:
+    """Filesystem path of the live SQLite database (empty for in-memory)."""
+    return db.engine.url.database or ""
 
 
 @bp.route("/")
@@ -109,6 +120,34 @@ def unlock_user(user_id: int):
                  details={"username": user.username})
     db.session.commit()
     flash(f"User '{user.username}' has been unlocked.", "success")
+    return redirect(url_for("admin.users"))
+
+
+# --- Backup ----------------------------------------------------------------
+
+@bp.route("/backup", methods=["POST"])
+@login_required
+@admin_required
+def backup():
+    if not ActionForm().validate_on_submit():
+        abort(400)
+
+    source = _source_db_path()
+    if not source or source == ":memory:":
+        flash("Backup is not available for an in-memory database.", "error")
+        return redirect(url_for("admin.users"))
+
+    try:
+        path = create_backup(source, BACKUPS_DIR, datetime.now())
+    except Exception:  # noqa: BLE001 — show a friendly message, never a stack trace
+        current_app.logger.exception("Database backup failed")
+        flash("Sorry, the backup could not be created. Please try again.", "error")
+        return redirect(url_for("admin.users"))
+
+    record_audit("backup", user_id=current_user.id, entity="database",
+                 details={"file": os.path.basename(path)})
+    db.session.commit()
+    flash(f"Backup saved to {path}", "success")
     return redirect(url_for("admin.users"))
 
 
