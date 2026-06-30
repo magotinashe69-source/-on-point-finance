@@ -25,6 +25,15 @@
   </div>
 </div>
 
+<div class="card" style="margin-bottom: 22px;">
+  <div style="font-size: 14px; color: #34405a; font-weight: 600; margin-bottom: 10px;">
+    Last 7 days
+  </div>
+  <div style="position: relative; height: 240px;">
+    <canvas id="weekChart"></canvas>
+  </div>
+</div>
+
 <div class="actions">
   <a class="btn-big btn-income" href="{{ url_for('main.record', txn_type='income', date=selected_day.isoformat()) }}">
     + Record Income
@@ -74,5 +83,34 @@
 {% else %}
 <p class="muted">No entries for this day yet. Use the buttons above to record income or an expense.</p>
 {% endif %}
+
+<script src="{{ url_for('static', filename='vendor/chart.umd.js') }}"></script>
+<script>
+  (function () {
+    var endpoint = "{{ url_for('main.chart_data', date=selected_day.isoformat()) }}";
+    fetch(endpoint, { headers: { "X-Requested-With": "fetch" } })
+      .then(function (response) { return response.json(); })
+      .then(function (data) {
+        var canvas = document.getElementById("weekChart");
+        if (!canvas || typeof Chart === "undefined") { return; }
+        new Chart(canvas, {
+          type: "bar",
+          data: {
+            labels: data.labels,
+            datasets: [
+              { label: "Income", data: data.income, backgroundColor: "#1d9e75" },
+              { label: "Expenses", data: data.expense, backgroundColor: "#d85a30" }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: "bottom" } },
+            scales: { y: { beginAtZero: true } }
+          }
+        });
+      });
+  })();
+</script>
 
 {% endblock %}

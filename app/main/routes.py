@@ -2,7 +2,7 @@
 
 from datetime import date, datetime
 
-from flask import render_template, request, redirect, url_for, flash, abort
+from flask import render_template, request, redirect, url_for, flash, abort, jsonify
 from flask_login import login_required, current_user
 
 from app.extensions import db
@@ -12,7 +12,7 @@ from app.audit import record_audit
 from app.auth.decorators import admin_required
 from app.main import bp
 from app.main.forms import TransactionForm, DeleteForm
-from app.main.services import compute_totals, transactions_on
+from app.main.services import compute_totals, transactions_on, last_7_days_series
 
 
 def _parse_day(raw: str | None) -> date:
@@ -38,6 +38,14 @@ def index():
         totals=totals,
         delete_form=DeleteForm(),
     )
+
+
+@bp.route("/api/last-7-days")
+@login_required
+def chart_data():
+    """JSON for the dashboard chart: 7 days ending on the selected date."""
+    end_day = _parse_day(request.args.get("date"))
+    return jsonify(last_7_days_series(end_day))
 
 
 @bp.route("/record/<txn_type>", methods=["GET", "POST"])

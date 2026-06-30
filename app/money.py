@@ -51,3 +51,13 @@ def cents_to_str(cents: int, suffix: str = CURRENCY_SUFFIX) -> str:
     amount = Decimal(cents) / Decimal(100)
     formatted = f"{amount:,.2f}"
     return f"{formatted} {suffix}".strip()
+
+
+def cents_to_major(cents: int) -> float:
+    """Convert integer centavos to major MT units for display, e.g. 150000 -> 1500.0.
+
+    For charts/JSON only — storage and maths always stay in integer centavos.
+    """
+    if isinstance(cents, bool) or not isinstance(cents, int):
+        raise ValueError("cents must be an integer number of centavos.")
+    return float(Decimal(cents) / Decimal(100))
