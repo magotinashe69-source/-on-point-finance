@@ -12,6 +12,26 @@ from sqlalchemy.pool import StaticPool
 # Absolute path to the project root (the folder this file lives in).
 basedir = os.path.abspath(os.path.dirname(__file__))
 
+# Local SQLite database, used only when DATABASE_URL is not set.
+_DEFAULT_SQLITE_URL = "sqlite:///" + os.path.join(basedir, "instance", "finance.db")
+
+
+def _normalize_db_url(url: str) -> str:
+    """Make a database URL SQLAlchemy-friendly.
+
+    Some providers (e.g. Neon, Heroku) hand out URLs starting with "postgres://".
+    We rewrite Postgres URLs to the "postgresql+psycopg://" scheme so SQLAlchemy
+    uses the installed psycopg 3 driver (a plain "postgresql://" URL would default
+    to psycopg2, which we do not install). Non-Postgres URLs (e.g. sqlite) are
+    left unchanged.
+    """
+    if not url:
+        return url
+    for prefix in ("postgres://", "postgresql://"):
+        if url.startswith(prefix):
+            return "postgresql+psycopg://" + url[len(prefix):]
+    return url
+
 
 class Config:
     """Base configuration shared by every environment."""
@@ -21,10 +41,10 @@ class Config:
     # (see app/__init__.py) so we never run with an insecure or shared key.
     SECRET_KEY = os.environ.get("SECRET_KEY")
 
-    # --- Database: one SQLite file inside the instance/ folder. ---
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
-        "DATABASE_URL",
-        "sqlite:///" + os.path.join(basedir, "instance", "finance.db"),
+    # --- Database: use DATABASE_URL if set (e.g. Neon Postgres), otherwise
+    #     fall back to the local SQLite file in instance/. ---
+    SQLALCHEMY_DATABASE_URI = _normalize_db_url(
+        os.environ.get("DATABASE_URL", _DEFAULT_SQLITE_URL)
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
