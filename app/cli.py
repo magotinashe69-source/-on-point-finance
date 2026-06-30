@@ -3,6 +3,7 @@
   flask seed-categories   -> insert the starting income/expense categories
   flask create-admin      -> interactively create the first admin user
   flask reset-password    -> set a new password for a user (and unlock them)
+  flask change-login      -> rename a user, set a new password, and unlock them
 
 All are registered on the app in the application factory.
 """
@@ -86,8 +87,45 @@ def reset_password(username):
     click.echo(f"Password updated for {username}")
 
 
+@click.command("change-login")
+@click.argument("old_username")
+@click.argument("new_username")
+@with_appcontext
+def change_login(old_username, new_username):
+    """Rename OLD_USERNAME to NEW_USERNAME, set a new password, and unlock."""
+    user = User.query.filter_by(username=old_username).first()
+    if user is None:
+        raise click.ClickException(f"No user named '{old_username}' was found.")
+
+    new_username = new_username.strip()
+    if not new_username:
+        raise click.ClickException("The new username cannot be empty.")
+
+    # Allow renaming to the same user (acts as a password reset), but block
+    # collisions with a DIFFERENT existing account.
+    clash = User.query.filter_by(username=new_username).first()
+    if clash is not None and clash.id != user.id:
+        raise click.ClickException(f"A user named '{new_username}' already exists.")
+
+    password = click.prompt("New password", hide_input=True, confirmation_prompt=True)
+    if len(password) < 8:
+        raise click.ClickException("Password must be at least 8 characters.")
+
+    user.username = new_username
+    user.set_password(password)
+    # Unlock the account at the same time.
+    user.locked_until = None
+    user.failed_login_attempts = 0
+
+    record_audit("change_login", user_id=user.id, entity="user", entity_id=user.id,
+                 details={"old_username": old_username, "new_username": new_username, "via": "cli"})
+    db.session.commit()
+    click.echo(f"Login updated: '{old_username}' is now '{new_username}' (password reset, account unlocked).")
+
+
 def register_cli(app) -> None:
     """Attach the CLI commands to the Flask app (called from the factory)."""
     app.cli.add_command(seed_categories)
     app.cli.add_command(create_admin)
     app.cli.add_command(reset_password)
+    app.cli.add_command(change_login)
