@@ -175,6 +175,44 @@ def force_reset_admin():
     click.echo(f"force-reset-admin: password updated for {username}")
 
 
+@click.command("ensure-admin")
+@with_appcontext
+def ensure_admin():
+    """Upsert an admin from env vars: create the user if missing, else reset it.
+
+    Reads RESET_USERNAME and RESET_PASSWORD. Intended for hosts with no shell
+    access whose database may start empty. Never prints the password.
+    """
+    username = (os.environ.get("RESET_USERNAME") or "").strip()
+    password = os.environ.get("RESET_PASSWORD") or ""
+
+    if not username or not password:
+        click.echo("ensure-admin: not requested, skipping.")
+        return
+
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        # No such user yet: create a fresh admin.
+        user = User(name=username, username=username, role="admin", is_active=True)
+        user.set_password(password)
+        db.session.add(user)
+        db.session.flush()  # assign user.id so the audit row can reference it
+        record_audit("ensure_admin", user_id=user.id, entity="user", entity_id=user.id,
+                     details={"username": user.username, "via": "deploy-env", "outcome": "created"})
+        db.session.commit()
+        click.echo(f"ensure-admin: created admin {username}")
+        return
+
+    # User exists: reset the password and unlock the account.
+    user.set_password(password)
+    user.locked_until = None
+    user.failed_login_attempts = 0
+    record_audit("ensure_admin", user_id=user.id, entity="user", entity_id=user.id,
+                 details={"username": user.username, "via": "deploy-env", "outcome": "updated"})
+    db.session.commit()
+    click.echo(f"ensure-admin: updated admin {username}")
+
+
 def register_cli(app) -> None:
     """Attach the CLI commands to the Flask app (called from the factory)."""
     app.cli.add_command(seed_categories)
@@ -183,3 +221,4 @@ def register_cli(app) -> None:
     app.cli.add_command(change_login)
     app.cli.add_command(list_users)
     app.cli.add_command(force_reset_admin)
+    app.cli.add_command(ensure_admin)
