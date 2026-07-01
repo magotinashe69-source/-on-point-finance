@@ -126,6 +126,21 @@ def change_login(old_username, new_username):
     click.echo(f"Login updated: '{old_username}' is now '{new_username}' (password reset, account unlocked).")
 
 
+@click.command("list-users")
+@with_appcontext
+def list_users():
+    """Print every user (read-only) so accounts are easy to spot in deploy logs.
+
+    Never prints passwords or hashes.
+    """
+    users = User.query.order_by(User.username).all()
+    if not users:
+        click.echo("LIST-USERS: (no users found)")
+        return
+    for user in users:
+        click.echo(f"LIST-USERS: {user.username} | role={user.role} | active={user.is_active}")
+
+
 @click.command("force-reset-admin")
 @with_appcontext
 def force_reset_admin():
@@ -166,4 +181,5 @@ def register_cli(app) -> None:
     app.cli.add_command(create_admin)
     app.cli.add_command(reset_password)
     app.cli.add_command(change_login)
+    app.cli.add_command(list_users)
     app.cli.add_command(force_reset_admin)
