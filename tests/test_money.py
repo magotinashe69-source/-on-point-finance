@@ -47,11 +47,12 @@ def test_str_to_cents_rejects_too_many_decimals():
 @pytest.mark.parametrize(
     "cents, expected",
     [
-        (150000, "1,500.00 MT"),
-        (5, "0.05 MT"),
-        (0, "0.00 MT"),
-        (123456789, "1,234,567.89 MT"),
-        (-150000, "-1,500.00 MT"),  # negative balance keeps its sign
+        (450000, "4,500 MT"),       # whole meticais, no decimals
+        (150000, "1,500 MT"),
+        (0, "0 MT"),
+        (5, "0 MT"),                # 0.05 MT rounds to 0 whole meticais
+        (123456789, "1,234,568 MT"),  # 1,234,567.89 rounds half-up
+        (-150000, "-1,500 MT"),     # negative balance keeps its sign
     ],
 )
 def test_cents_to_str(cents, expected):
@@ -67,8 +68,10 @@ def test_cents_to_str_rejects_non_integer():
 
 # --- round trip ------------------------------------------------------------
 
-@pytest.mark.parametrize("text", ["0.00", "0.01", "9.99", "1500.00", "1,234,567.89", "1000000"])
-def test_round_trip(text):
+# The display now shows whole meticais only (no centavos), so the round trip
+# holds for whole-metical amounts — the amounts real fees actually use.
+@pytest.mark.parametrize("text", ["0", "9", "1500", "1,234,567", "1000000"])
+def test_round_trip_whole_meticais(text):
     cents = str_to_cents(text)
     displayed = cents_to_str(cents)
     # Stripping the " MT" suffix and re-parsing must give the same cents back.

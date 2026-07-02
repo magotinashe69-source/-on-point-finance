@@ -25,14 +25,15 @@ BAND_ECD = "ECDA-B"
 BAND_1_2 = "Grade 1-2"
 BAND_3_7 = "Grade 3-7"
 
-# Default seed amounts, in integer centavos. The school can adjust these later
-# from the database; they are the starting point only.
+# Default seed amounts, in integer centavos. Fees are whole meticais, so these
+# are the metical value x 100 (e.g. 4,500 MT -> 450000). The school can adjust
+# them later from the database; they are the starting point only.
 DEFAULT_FEES_CENTS = {
-    BAND_ECD: 3500,
-    BAND_1_2: 4000,
-    BAND_3_7: 4500,
-    FEE_REGISTRATION: 3000,
-    FEE_FOOD: 1200,
+    BAND_ECD: 350000,     # 3,500 MT
+    BAND_1_2: 400000,     # 4,000 MT
+    BAND_3_7: 450000,     # 4,500 MT
+    FEE_REGISTRATION: 300000,  # 3,000 MT
+    FEE_FOOD: 120000,          # 1,200 MT
 }
 
 # Which income Category a fee maps to when the payment is saved.
@@ -117,15 +118,21 @@ def income_category_for_fee(fee_type: str) -> Category:
 
 
 def seed_fees() -> int:
-    """Insert the default GradeFee rows if missing. Returns how many were added.
+    """Upsert the default GradeFee rows. Returns how many were created or corrected.
 
-    Idempotent: safe to run more than once. Used by `flask seed-fees` and tests.
-    Caller-independent (commits itself).
+    Inserts any missing rows AND repairs the amount of any existing row that does
+    not match the correct value — so re-running fixes wrong data already stored
+    (e.g. the earlier 100x-too-small fees). Idempotent: a second run with correct
+    data returns 0. Used by `flask seed-fees` and tests. Commits itself.
     """
-    created = 0
+    changed = 0
     for band, cents in DEFAULT_FEES_CENTS.items():
-        if not GradeFee.query.filter_by(grade_band=band).first():
+        fee = GradeFee.query.filter_by(grade_band=band).first()
+        if fee is None:
             db.session.add(GradeFee(grade_band=band, tuition_cents=cents, is_active=True))
-            created += 1
+            changed += 1
+        elif fee.tuition_cents != cents:
+            fee.tuition_cents = cents  # repair a wrong (e.g. 100x-too-small) value
+            changed += 1
     db.session.commit()
-    return created
+    return changed

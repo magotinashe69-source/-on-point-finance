@@ -49,8 +49,8 @@ def seed_fees_command():
     """Insert the starting tuition/flat fees. Safe to run more than once."""
     from app.fees import seed_fees
 
-    created = seed_fees()
-    click.echo(f"Seed complete. Added {created} new fee row{'' if created == 1 else 's'}.")
+    changed = seed_fees()
+    click.echo(f"Seed complete. {changed} fee row{'' if changed == 1 else 's'} created or corrected.")
 
 
 @click.command("create-admin")

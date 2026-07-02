@@ -41,16 +41,18 @@ def str_to_cents(value: str) -> int:
 
 
 def cents_to_str(cents: int, suffix: str = CURRENCY_SUFFIX) -> str:
-    """Format integer centavos for display, e.g. 150000 -> "1,500.00 MT".
+    """Format integer centavos for display as whole meticais, e.g. 450000 -> "4,500 MT".
 
-    Negative values keep their sign (useful for a negative balance).
+    Meticais fees are whole numbers, so the display shows no centavos: a thousands
+    separator and no decimals. Money is still STORED as integer centavos; only the
+    display is rounded (half-up) to the nearest whole metical. Negative values keep
+    their sign (useful for a negative balance).
     """
     if isinstance(cents, bool) or not isinstance(cents, int):
         raise ValueError("cents must be an integer number of centavos.")
 
-    amount = Decimal(cents) / Decimal(100)
-    formatted = f"{amount:,.2f}"
-    return f"{formatted} {suffix}".strip()
+    meticais = int((Decimal(cents) / Decimal(100)).to_integral_value(rounding=ROUND_HALF_UP))
+    return f"{meticais:,} {suffix}".strip()
 
 
 def cents_to_major(cents: int) -> float:

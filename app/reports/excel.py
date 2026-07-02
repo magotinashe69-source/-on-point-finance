@@ -10,7 +10,9 @@ from openpyxl.utils import get_column_letter
 from app.money import cents_to_major
 
 NAVY_HEX = "16264D"
-MONEY_FORMAT = "#,##0.00"
+# Whole meticais, thousands separator, no decimals (money is stored as centavos
+# but displayed as whole meticais everywhere, including this sheet).
+MONEY_FORMAT = "#,##0"
 
 
 def build_excel(start_day: date, end_day: date, entries, totals: dict, breakdown: dict) -> bytes:

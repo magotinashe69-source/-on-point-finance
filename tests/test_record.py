@@ -30,7 +30,7 @@ def test_record_income_creates_entry(client, user):
         follow_redirects=True,
     )
     assert resp.status_code == 200
-    assert b"1,500.00 MT" in resp.data  # shown on the dashboard
+    assert b"1,500 MT" in resp.data  # shown on the dashboard (whole meticais)
     txn = Transaction.query.one()
     assert txn.amount_cents == 150000  # 1500.00 stored as integer centavos
     assert txn.type == "income"

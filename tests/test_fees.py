@@ -47,9 +47,9 @@ def test_tuition_derived_from_stored_grade(app):
     grade5 = _student("Bem Five", "Grade 5")
     ecd = _student("Cita ECD", "ECD B")
 
-    assert tuition_cents_for_student(grade1) == 4000   # Grade 1-2
-    assert tuition_cents_for_student(grade5) == 4500   # Grade 3-7
-    assert tuition_cents_for_student(ecd) == 3500      # ECDA-B
+    assert tuition_cents_for_student(grade1) == 400000   # Grade 1-2 = 4,000 MT
+    assert tuition_cents_for_student(grade5) == 450000   # Grade 3-7 = 4,500 MT
+    assert tuition_cents_for_student(ecd) == 350000      # ECDA-B   = 3,500 MT
 
 
 def test_unmatched_grade_returns_none(app):
@@ -64,7 +64,19 @@ def test_unmatched_grade_returns_none(app):
 
 def test_seed_fees_is_idempotent(app):
     assert seed_fees() == 5      # ECDA-B, 1-2, 3-7, Registration, Food
-    assert seed_fees() == 0      # nothing added the second time
+    assert seed_fees() == 0      # nothing changed the second time
+    assert GradeFee.query.count() == 5
+
+
+def test_seed_fees_repairs_wrong_values(app):
+    # Simulate the old 100x-too-small data already in the database.
+    db.session.add(GradeFee(grade_band="Grade 3-7", tuition_cents=4500, is_active=True))
+    db.session.commit()
+
+    changed = seed_fees()
+    # The wrong row is corrected (not skipped) and the four missing rows added.
+    assert changed == 5
+    assert GradeFee.query.filter_by(grade_band="Grade 3-7").one().tuition_cents == 450000
     assert GradeFee.query.count() == 5
 
 
@@ -78,7 +90,7 @@ def test_saved_fee_payment_has_student_and_amount(client, user):
     resp = client.post("/record/fee", data={
         "student": student.id,
         "fee_type": "Tuition",
-        "amount": "40.00",           # 4000 cents
+        "amount": "4000",            # 4,000 MT -> 400000 cents (Grade 1-2 tuition)
         "payment_method": "Cash",
         "date": date.today().isoformat(),
         "description": "Tuition - Ana One (Grade 1)",
@@ -86,7 +98,7 @@ def test_saved_fee_payment_has_student_and_amount(client, user):
     assert resp.status_code == 200
 
     txn = Transaction.query.filter_by(student_id=student.id).one()
-    assert txn.amount_cents == 4000
+    assert txn.amount_cents == 400000
     assert txn.type == "income"
     assert txn.category.name == "Tuition"
     assert txn.category.type == "income"
