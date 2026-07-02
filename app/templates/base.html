@@ -96,6 +96,7 @@
     {% if current_user.is_authenticated %}
     <nav class="nav">
       <a href="{{ url_for('main.index') }}">Home</a>
+      <a href="{{ url_for('students.index') }}">Students</a>
       <a href="{{ url_for('reports.index') }}">Reports</a>
       {% if current_user.is_admin %}<a href="{{ url_for('admin.users') }}">Settings</a>{% endif %}
       <a href="{{ url_for('auth.change_password') }}">Change password</a>

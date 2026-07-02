@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Students &middot; On Point Finance{% endblock %}
+{% block content %}
+
+<h1 style="color: var(--navy); margin-top: 0;">Students</h1>
+
+<div class="actions">
+  <a class="btn-big btn-income" href="{{ url_for('students.add') }}">+ Add Student</a>
+  {% if current_user.is_admin %}
+  <a class="btn-big" style="background: var(--navy);" href="{{ url_for('students.import_csv') }}">
+    Import from CSV
+  </a>
+  {% endif %}
+</div>
+
+<form method="get" action="{{ url_for('students.index') }}" class="dateform">
+  <div style="flex: 1;">
+    <label for="q">Search</label>
+    <input type="text" id="q" name="q" class="input" style="margin-bottom:0;"
+           value="{{ query }}" placeholder="Name, class, or guardian phone" autofocus>
+  </div>
+  <button type="submit">Search</button>
+  {% if query %}<a href="{{ url_for('students.index') }}" style="align-self:center; margin-left:6px;">Clear</a>{% endif %}
+</form>
+
+{% if students %}
+<table class="entries">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Class</th>
+      <th>Guardian phone</th>
+      {% if current_user.is_admin %}<th></th>{% endif %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for s in students %}
+    <tr>
+      <td>{{ s.full_name }}</td>
+      <td>{{ s.class_name or '—' }}</td>
+      <td>{{ s.guardian_phone or '—' }}</td>
+      {% if current_user.is_admin %}
+      <td style="text-align:right;">
+        <form method="post" action="{{ url_for('students.deactivate', student_id=s.id) }}"
+              onsubmit="return confirm('Deactivate {{ s.full_name }}? The record is kept, just hidden from the list.');">
+          {{ action.hidden_tag() }}
+          <button type="submit" class="btn-danger">Deactivate</button>
+        </form>
+      </td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">
+  {% if query %}No active students match “{{ query }}”.{% else %}No students yet. Use “Add Student” or import a CSV.{% endif %}
+</p>
+{% endif %}
+
+{% endblock %}

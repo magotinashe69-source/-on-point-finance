@@ -88,6 +88,23 @@ class Transaction(db.Model):
         return f"<Transaction {self.type} {self.amount_cents}c on {self.date}>"
 
 
+class Student(db.Model):
+    __tablename__ = "students"
+
+    id = db.Column(db.Integer, primary_key=True)
+    full_name = db.Column(db.String(120), nullable=False, index=True)
+    class_name = db.Column(db.String(80), nullable=True)
+    guardian_name = db.Column(db.String(120), nullable=True)
+    guardian_phone = db.Column(db.String(40), nullable=True)
+    student_no = db.Column(db.String(60), nullable=True)
+    # Soft state: deactivate a student, never hard delete (keeps the record).
+    is_active = db.Column(db.Boolean, nullable=False, default=True, index=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=_utcnow)
+
+    def __repr__(self) -> str:
+        return f"<Student {self.full_name}>"
+
+
 class AuditLog(db.Model):
     __tablename__ = "audit_log"
 

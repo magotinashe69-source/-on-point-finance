@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Add student &middot; On Point Finance{% endblock %}
+{% block content %}
+<div class="card" style="max-width: 520px; margin: 0 auto;">
+  <h1 style="margin-top: 0; color: var(--navy);">Add Student</h1>
+
+  <form method="post" action="{{ url_for('students.add') }}" novalidate>
+    {{ form.hidden_tag() }}
+
+    {{ form.full_name.label }}
+    {{ form.full_name(class_="input", autofocus=true) }}
+    {% for error in form.full_name.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+
+    {{ form.class_name.label }}
+    {{ form.class_name(class_="input") }}
+    {% for error in form.class_name.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+
+    {{ form.guardian_name.label }}
+    {{ form.guardian_name(class_="input") }}
+    {% for error in form.guardian_name.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+
+    {{ form.guardian_phone.label }}
+    {{ form.guardian_phone(class_="input", inputmode="tel") }}
+    {% for error in form.guardian_phone.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+
+    {{ form.student_no.label }}
+    {{ form.student_no(class_="input") }}
+    {% for error in form.student_no.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+
+    <button type="submit" class="btn-primary">Save student</button>
+  </form>
+
+  <p style="margin-top: 16px;">
+    <a href="{{ url_for('students.index') }}">&larr; Back to students</a>
+  </p>
+</div>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Import students &middot; On Point Finance{% endblock %}
+{% block content %}
+<div class="card" style="max-width: 560px; margin: 0 auto;">
+  <h1 style="margin-top: 0; color: var(--navy);">Import Students from CSV</h1>
+
+  <p class="muted" style="margin-top: 0;">
+    Upload a <code>.csv</code> file with these exact column headers:
+  </p>
+  <p style="font-family: monospace; background:#f0f3f9; padding:10px 12px; border-radius:8px;">
+    full_name, class_name, guardian_name, guardian_phone, student_no
+  </p>
+  <p class="muted">
+    Only <strong>full_name</strong> is required. Rows that are blank, missing a name, or
+    match a student who already has the same name and class are skipped.
+  </p>
+
+  <p>
+    <a href="{{ url_for('students.import_template') }}">&darr; Download blank template CSV</a>
+  </p>
+
+  <form method="post" action="{{ url_for('students.import_csv') }}" enctype="multipart/form-data" novalidate>
+    {{ form.hidden_tag() }}
+    {{ form.file.label }}
+    {{ form.file(class_="input", accept=".csv") }}
+    {% for error in form.file.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+    <button type="submit" class="btn-primary">Import students</button>
+  </form>
+
+  {% if summary %}
+  <div class="flash success" style="margin-top: 20px;">
+    <strong>Import summary</strong>
+    <ul style="margin: 8px 0 0; padding-left: 20px; line-height: 1.6;">
+      <li><strong>{{ summary.added }}</strong> student(s) added.</li>
+      <li><strong>{{ summary.skipped_total }}</strong> row(s) skipped:</li>
+      <ul style="padding-left: 20px;">
+        <li>{{ summary.skipped_blank }} blank row(s)</li>
+        <li>{{ summary.skipped_no_name }} row(s) missing a full name</li>
+        <li>{{ summary.skipped_duplicate }} duplicate(s) (same name and class already exists)</li>
+      </ul>
+    </ul>
+  </div>
+  {% endif %}
+
+  <p style="margin-top: 16px;">
+    <a href="{{ url_for('students.index') }}">&larr; Back to students</a>
+  </p>
+</div>
+{% endblock %}
