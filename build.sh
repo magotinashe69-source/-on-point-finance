@@ -2,5 +2,6 @@
 set -o errexit
 pip install -r requirements.txt
 flask db upgrade
+flask seed-fees
 flask list-users
 flask ensure-admin
