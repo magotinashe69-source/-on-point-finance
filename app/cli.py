@@ -43,6 +43,16 @@ def seed_categories():
     click.echo(f"Seed complete. Added {created} new categor{'y' if created == 1 else 'ies'}.")
 
 
+@click.command("seed-fees")
+@with_appcontext
+def seed_fees_command():
+    """Insert the starting tuition/flat fees. Safe to run more than once."""
+    from app.fees import seed_fees
+
+    created = seed_fees()
+    click.echo(f"Seed complete. Added {created} new fee row{'' if created == 1 else 's'}.")
+
+
 @click.command("create-admin")
 @with_appcontext
 def create_admin():
@@ -216,6 +226,7 @@ def ensure_admin():
 def register_cli(app) -> None:
     """Attach the CLI commands to the Flask app (called from the factory)."""
     app.cli.add_command(seed_categories)
+    app.cli.add_command(seed_fees_command)
     app.cli.add_command(create_admin)
     app.cli.add_command(reset_password)
     app.cli.add_command(change_login)

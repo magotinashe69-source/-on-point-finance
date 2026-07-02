@@ -77,12 +77,16 @@ class Transaction(db.Model):
     receipt_no = db.Column(db.String(60), nullable=True)
     description = db.Column(db.String(255), nullable=True)
     recorded_by = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    # Optional link to a student (Stage 2 income recording). Nullable so manual
+    # income/expense entries with no student keep working.
+    student_id = db.Column(db.Integer, db.ForeignKey("students.id"), nullable=True)
     is_deleted = db.Column(db.Boolean, nullable=False, default=False, index=True)  # soft delete
     created_at = db.Column(db.DateTime, nullable=False, default=_utcnow)
     updated_at = db.Column(db.DateTime, nullable=False, default=_utcnow, onupdate=_utcnow)
 
     category = db.relationship("Category")
     recorder = db.relationship("User")
+    student = db.relationship("Student")
 
     def __repr__(self) -> str:
         return f"<Transaction {self.type} {self.amount_cents}c on {self.date}>"
@@ -103,6 +107,26 @@ class Student(db.Model):
 
     def __repr__(self) -> str:
         return f"<Student {self.full_name}>"
+
+
+class GradeFee(db.Model):
+    """Tuition (and flat fees) keyed by grade band — the single source of truth.
+
+    For tuition, `grade_band` is a real band ("ECDA-B", "Grade 1-2", "Grade 3-7")
+    and a student's stored class_name is mapped to it (see app/fees.py). Flat fees
+    (Registration, Food) are stored here too, using the fee name as the band key,
+    so every fee amount lives in one table. Amount is integer centavos.
+    """
+
+    __tablename__ = "grade_fees"
+
+    id = db.Column(db.Integer, primary_key=True)
+    grade_band = db.Column(db.String(40), nullable=False, unique=True, index=True)
+    tuition_cents = db.Column(db.Integer, nullable=False)  # integer centavos, never float
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
+
+    def __repr__(self) -> str:
+        return f"<GradeFee {self.grade_band} {self.tuition_cents}c>"
 
 
 class AuditLog(db.Model):

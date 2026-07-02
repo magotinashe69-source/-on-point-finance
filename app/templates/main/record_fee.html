@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Record fee &middot; On Point Finance{% endblock %}
+{% block content %}
+<div class="card" style="max-width: 560px; margin: 0 auto;">
+  <h1 style="margin-top: 0; color: #1b7e3c;">Record School Fee</h1>
+  <p class="muted" style="margin-top: 0;">
+    Pick the student — their grade and tuition are already on file, so you barely type.
+  </p>
+
+  <form method="post" action="{{ url_for('main.record_student_income') }}" novalidate>
+    {{ form.hidden_tag() }}
+
+    <label for="studentSearch">Find student</label>
+    <input type="text" id="studentSearch" class="input" autocomplete="off"
+           placeholder="Type a name to filter…" autofocus>
+
+    {{ form.student.label }}
+    {{ form.student(class_="input", id="student", size="6") }}
+    {% for error in form.student.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+
+    <div id="gradeBox" class="flash message" style="margin-top: 10px;">
+      Grade on file: <strong id="gradeText">—</strong>
+      <span id="gradeNotice" class="field-error" style="display:none;">
+        &nbsp;— grade not matched to a fee band, please check the amount.
+      </span>
+    </div>
+
+    {{ form.fee_type.label }}
+    {{ form.fee_type(class_="input", id="feeType") }}
+    {% for error in form.fee_type.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+
+    {{ form.amount.label }}
+    {{ form.amount(class_="input", id="amount", placeholder="0.00", inputmode="decimal") }}
+    <div class="muted" style="font-size:13px;">Auto-filled from the fee — edit it for a part-payment.</div>
+    {% for error in form.amount.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+
+    {{ form.payment_method.label }}
+    {{ form.payment_method(class_="input") }}
+    {% for error in form.payment_method.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+
+    {{ form.date.label }}
+    {{ form.date(class_="input", type="date") }}
+    {% for error in form.date.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+
+    {{ form.description.label }}
+    {{ form.description(class_="input", id="description") }}
+    {% for error in form.description.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+
+    <button type="submit" class="btn-primary" style="background:#1b7e3c;">Save income</button>
+  </form>
+
+  <p style="margin-top: 16px;">
+    <a href="{{ url_for('main.index', date=selected_day.isoformat()) }}">&larr; Back to the day</a>
+  </p>
+</div>
+
+<script>
+  (function () {
+    // Data comes from the server (offline-friendly: no network calls needed).
+    var STUDENTS = {{ student_data|tojson }};
+    var FLAT_FEES = {{ fee_amounts|tojson }};   // cents; Tuition is per-student
+
+    var searchInput = document.getElementById("studentSearch");
+    var studentSelect = document.getElementById("student");
+    var feeType = document.getElementById("feeType");
+    var amount = document.getElementById("amount");
+    var description = document.getElementById("description");
+    var gradeText = document.getElementById("gradeText");
+    var gradeNotice = document.getElementById("gradeNotice");
+
+    // Snapshot of every option so we can rebuild the list while filtering.
+    var allOptions = Array.prototype.map.call(studentSelect.options, function (o) {
+      return { value: o.value, text: o.text };
+    });
+
+    function centsToStr(cents) {
+      return (cents / 100).toFixed(2);
+    }
+
+    function currentStudent() {
+      return STUDENTS[studentSelect.value] || null;
+    }
+
+    function feeAmountCents(student, fee) {
+      if (!student) { return null; }
+      if (fee === "Tuition") { return student.tuition_cents; }  // may be null
+      return FLAT_FEES[fee];                                    // flat, may be null
+    }
+
+    function refresh() {
+      var student = currentStudent();
+      var fee = feeType.value;
+
+      // Read-only grade display (from the stored record — never editable here).
+      if (student) {
+        gradeText.textContent = student.grade ? student.grade : "not set";
+      } else {
+        gradeText.textContent = "—";
+      }
+
+      var cents = feeAmountCents(student, fee);
+      var unmatched = (fee === "Tuition" && student && (student.tuition_cents === null));
+      gradeNotice.style.display = unmatched ? "inline" : "none";
+
+      // Auto-fill amount: known fee -> its amount; unmatched tuition -> 0 (typeable).
+      if (cents === null || cents === undefined) {
+        amount.value = "0.00";
+      } else {
+        amount.value = centsToStr(cents);
+      }
+
+      // Auto-fill description: "<Fee> - <Name> (<grade>)".
+      if (student) {
+        var grade = student.grade ? student.grade : "no grade";
+        description.value = fee + " - " + student.name + " (" + grade + ")";
+      }
+    }
+
+    function rebuildOptions() {
+      var term = searchInput.value.toLowerCase();
+      var previous = studentSelect.value;
+      studentSelect.innerHTML = "";
+      var keptSelection = false;
+      allOptions.forEach(function (o) {
+        if (o.text.toLowerCase().indexOf(term) === -1) { return; }
+        var opt = document.createElement("option");
+        opt.value = o.value;
+        opt.text = o.text;
+        if (o.value === previous) { opt.selected = true; keptSelection = true; }
+        studentSelect.appendChild(opt);
+      });
+      if (!keptSelection && studentSelect.options.length > 0) {
+        studentSelect.options[0].selected = true;
+      }
+      refresh();
+    }
+
+    if (searchInput && studentSelect) {
+      searchInput.addEventListener("input", rebuildOptions);
+      studentSelect.addEventListener("change", refresh);
+      feeType.addEventListener("change", refresh);
+      refresh();  // initialise for the pre-selected student
+    }
+  })();
+</script>
+{% endblock %}

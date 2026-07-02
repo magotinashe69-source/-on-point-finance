@@ -43,6 +43,13 @@
   </a>
 </div>
 
+<div class="actions">
+  <a class="btn-big" style="background: var(--navy);"
+     href="{{ url_for('main.record_student_income', date=selected_day.isoformat()) }}">
+    &#127891; Record School Fee (student)
+  </a>
+</div>
+
 <h2 style="color: var(--navy); font-size: 18px;">
   Entries for {{ selected_day.strftime('%d %B %Y') }}
 </h2>
